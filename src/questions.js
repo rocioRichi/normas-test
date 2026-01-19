@@ -143,4 +143,129 @@ export const QUESTION_BANK = [
     explanation:
       "UNE-EN 942 se usa como referencia para clasificar madera maciza para carpintería.",
   },
+  // --- VERDADERO/FALSO (añadidas) ---
+
+  {
+    id: "q310-tf-1",
+    type: "tf",
+    norm: "UNE-EN 310",
+    question: "La UNE-EN 310 evalúa la resistencia a la flexión de tableros.",
+    correctBool: true,
+    explanation: "Es la norma típica para ensayos de flexión en tableros.",
+  },
+  {
+    id: "q310-tf-2",
+    type: "tf",
+    norm: "UNE-EN 310",
+    question: "La UNE-EN 310 trata sobre emisión de formaldehído.",
+    correctBool: false,
+    explanation: "Eso corresponde a UNE-EN 717-1.",
+  },
+
+  {
+    id: "q311-tf-1",
+    type: "tf",
+    norm: "UNE-EN 311",
+    question:
+      "La UNE-EN 311 comprueba resistencia superficial (arrancamiento/tracción) en tableros.",
+    correctBool: true,
+    explanation:
+      "Evalúa la resistencia de la cara/superficie del tablero frente a tracción.",
+  },
+  {
+    id: "q311-tf-2",
+    type: "tf",
+    norm: "UNE-EN 311",
+    question: "La UNE-EN 311 sirve para clasificar adhesivos D1 a D4.",
+    correctBool: false,
+    explanation: "La clasificación D1–D4 es de la UNE-EN 204.",
+  },
+
+  {
+    id: "q312-tf-1",
+    type: "tf",
+    norm: "UNE-EN 312",
+    question: "La UNE-EN 312 trata sobre tableros de partículas (aglomerado).",
+    correctBool: true,
+    explanation: "Define requisitos/tipos para tableros de partículas.",
+  },
+  {
+    id: "q312-tf-2",
+    type: "tf",
+    norm: "UNE-EN 312",
+    question: "La UNE-EN 312 trata sobre tableros contrachapados.",
+    correctBool: false,
+    explanation: "Contrachapados: UNE-EN 636.",
+  },
+
+  {
+    id: "q622-tf-1",
+    type: "tf",
+    norm: "UNE-EN 622",
+    question: "La UNE-EN 622 se relaciona con tableros de fibra como MDF/HDF.",
+    correctBool: true,
+    explanation: "Es la familia de normas de tableros de fibras.",
+  },
+  {
+    id: "q622-tf-2",
+    type: "tf",
+    norm: "UNE-EN 622",
+    question: "La UNE-EN 622 trata sobre estabilidad de mesas.",
+    correctBool: false,
+    explanation: "Mesas: ISO 7174 (no UNE-EN 622).",
+  },
+
+  {
+    id: "q636-tf-1",
+    type: "tf",
+    norm: "UNE-EN 636",
+    question:
+      "La UNE-EN 636 orienta el uso del contrachapado según condiciones ambientales (interior/exterior).",
+    correctBool: true,
+    explanation: "Clasifica/define contrachapados por condición de servicio.",
+  },
+  {
+    id: "q636-tf-2",
+    type: "tf",
+    norm: "UNE-EN 636",
+    question: "La UNE-EN 636 trata sobre guantes de protección.",
+    correctBool: false,
+    explanation: "Guantes: UNE-EN 388.",
+  },
+
+  {
+    id: "q717-tf-1",
+    type: "tf",
+    norm: "UNE-EN 717-1",
+    question: "La UNE-EN 717-1 se usa para determinar emisión de formaldehído.",
+    correctBool: true,
+    explanation: "Es un método de ensayo de emisión de formaldehído.",
+  },
+  {
+    id: "q717-tf-2",
+    type: "tf",
+    norm: "UNE-EN 717-1",
+    question: "La UNE-EN 717-1 sirve para ensayos de flexión de tableros.",
+    correctBool: false,
+    explanation: "Flexión: UNE-EN 310.",
+  },
+
+  {
+    id: "q942-tf-1",
+    type: "tf",
+    norm: "UNE-EN 942",
+    question:
+      "La UNE-EN 942 se relaciona con clasificación/calidad de madera maciza para carpintería.",
+    correctBool: true,
+    explanation:
+      "Aterriza criterios de calidad/clasificación en madera maciza.",
+  },
+  {
+    id: "q942-tf-2",
+    type: "tf",
+    norm: "UNE-EN 942",
+    question: "La UNE-EN 942 trata sobre tableros MDF.",
+    correctBool: false,
+    explanation: "MDF/tableros de fibras: UNE-EN 622.",
+  },
 ];

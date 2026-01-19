@@ -16,6 +16,11 @@
 
     <section id="screen-start" class="card">
       <div class="row">
+        <label for="studentName">Alumno:</label>
+        <input id="studentName" type="text" placeholder="Ej: Ane, Iker..." maxlength="20" />
+      </div>
+
+      <div class="row">
         <label for="numQuestions">Número de preguntas:</label>
         <select id="numQuestions">
           <option value="5">5</option>
@@ -57,6 +62,8 @@
     <section id="screen-results" class="card hidden">
       <h2>Resultados</h2>
       <p id="resultsSummary" class="summary"></p>
+      <p id="personalRecord" class="muted"></p>
+
 
       <div class="actions">
         <button id="btnRestart" class="btn">Hacer otro test</button>

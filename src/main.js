@@ -2,6 +2,45 @@ import "./style.css";
 import { QUESTION_BANK } from "./questions.js";
 
 /* ---------- Helpers ---------- */
+
+const LS_KEY = "normas_test_profiles_v1";
+
+function loadProfiles() {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveProfiles(profiles) {
+  localStorage.setItem(LS_KEY, JSON.stringify(profiles));
+}
+
+function normName(name) {
+  return (name || "").trim().slice(0, 20);
+}
+
+function ensureProfile(profiles, name) {
+  if (!profiles[name]) {
+    profiles[name] = {
+      name,
+      createdAt: new Date().toISOString(),
+      lastMode: "mc",
+      stats: {
+        mc: { attempts: 0, bestCorrect: null, bestErrors: null, history: [] },
+        tf: { attempts: 0, bestCorrect: null, bestErrors: null, history: [] },
+      },
+    };
+  }
+  return profiles[name];
+}
+
+function pushHistory(arr, item, max = 20) {
+  arr.unshift(item);
+  if (arr.length > max) arr.length = max;
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -36,6 +75,9 @@ const btnFinish = document.getElementById("btnFinish");
 const resultsSummaryEl = document.getElementById("resultsSummary");
 const correctionsEl = document.getElementById("corrections");
 const btnRestart = document.getElementById("btnRestart");
+
+const studentNameEl = document.getElementById("studentName");
+const personalRecordEl = document.getElementById("personalRecord");
 
 /* ---------- State ---------- */
 let quiz = []; // selected questions
@@ -192,6 +234,55 @@ function computeResults() {
 
 function renderResults() {
   const { total, correct, wrong, details } = computeResults();
+  // ===== GUARDAR RESULTADO PERSONAL =====
+  const studentName =
+    normName(studentNameEl.value) ||
+    normName(localStorage.getItem("normas_last_student"));
+
+  const mode = modeEl.value; // "mc" o "tf"
+
+  if (studentName) {
+    const profiles = loadProfiles();
+    const profile = ensureProfile(profiles, studentName);
+
+    profile.lastMode = mode;
+
+    const s = profile.stats[mode];
+    s.attempts += 1;
+
+    if (s.bestCorrect === null || correct > s.bestCorrect) {
+      s.bestCorrect = correct;
+    }
+    if (s.bestErrors === null || wrong < s.bestErrors) {
+      s.bestErrors = wrong;
+    }
+
+    pushHistory(s.history, {
+      at: new Date().toISOString(),
+      correct,
+      total,
+      wrong,
+    });
+
+    saveProfiles(profiles);
+    // --- Mostrar registro personal ---
+    const studentName2 =
+      normName(studentNameEl.value) ||
+      normName(localStorage.getItem("normas_last_student"));
+    if (studentName2) {
+      const profiles = loadProfiles();
+      const p = profiles[studentName2];
+      const s = p?.stats?.[mode];
+      if (s) {
+        personalRecordEl.textContent = `Alumno: ${studentName2} · Intentos (${mode.toUpperCase()}): ${s.attempts} · Mejor: ${s.bestCorrect}/${total} · Menos errores: ${s.bestErrors}`;
+      } else {
+        personalRecordEl.textContent = `Alumno: ${studentName2}`;
+      }
+    } else {
+      personalRecordEl.textContent = "";
+    }
+  }
+  // ===== FIN GUARDADO =====
 
   resultsSummaryEl.textContent = `Total: ${total} · Aciertos: ${correct} · Errores: ${wrong}`;
 
@@ -239,6 +330,14 @@ function escapeHtml(str) {
 
 /* ---------- Events ---------- */
 btnStart.addEventListener("click", () => {
+  const studentName = normName(studentNameEl.value);
+  if (!studentName) {
+    alert("Escribe tu nombre o apodo para guardar tu progreso.");
+    studentNameEl.focus();
+    return;
+  }
+  localStorage.setItem("normas_last_student", studentName);
+
   const mode = modeEl.value; // "mc" | "tf"
   const count = Number(numQuestionsEl.value);
 
@@ -269,3 +368,5 @@ btnRestart.addEventListener("click", () => {
 });
 
 goToStart();
+const last = localStorage.getItem("normas_last_student");
+if (last && studentNameEl) studentNameEl.value = last;
