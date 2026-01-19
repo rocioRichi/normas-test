@@ -1,9 +1,11 @@
 import "./style.css";
 import { QUESTION_BANK } from "./questions.js";
 
-/* ---------- Helpers ---------- */
-
-const LS_KEY = "normas_test_profiles_v1";
+/* =======================
+   Storage (por alumno)
+======================= */
+const LS_KEY = "normas_profiles_v1";
+const LAST_STUDENT_KEY = "normas_last_student";
 
 function loadProfiles() {
   try {
@@ -12,35 +14,28 @@ function loadProfiles() {
     return {};
   }
 }
-
-function saveProfiles(profiles) {
-  localStorage.setItem(LS_KEY, JSON.stringify(profiles));
+function saveProfiles(p) {
+  localStorage.setItem(LS_KEY, JSON.stringify(p));
 }
-
-function normName(name) {
-  return (name || "").trim().slice(0, 20);
+function normName(s) {
+  return (s || "").trim().slice(0, 24);
 }
-
 function ensureProfile(profiles, name) {
-  if (!profiles[name]) {
-    profiles[name] = {
-      name,
-      createdAt: new Date().toISOString(),
-      lastMode: "mc",
-      stats: {
-        mc: { attempts: 0, bestCorrect: null, bestErrors: null, history: [] },
-        tf: { attempts: 0, bestCorrect: null, bestErrors: null, history: [] },
-      },
-    };
-  }
+  if (!profiles[name]) profiles[name] = { name, attempts: [] };
   return profiles[name];
 }
-
-function pushHistory(arr, item, max = 20) {
-  arr.unshift(item);
-  if (arr.length > max) arr.length = max;
+function percent(correct, total) {
+  if (!total) return 0;
+  return Math.round((correct / total) * 100);
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString();
 }
 
+/* =======================
+   Helpers
+======================= */
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -49,16 +44,48 @@ function shuffle(arr) {
   }
   return a;
 }
+function shuffleQuestionChoices(q) {
+  // Solo para tipo test
+  if (q.type !== "mc") return q;
+
+  const correctText = q.choices[q.correctIndex];
+  const newChoices = shuffle(q.choices);
+
+  const newCorrectIndex = newChoices.findIndex((c) => c === correctText);
+
+  return {
+    ...q,
+    choices: newChoices,
+    correctIndex: newCorrectIndex,
+  };
+}
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+function show(el) {
+  el.classList.remove("hidden");
+}
+function hide(el) {
+  el.classList.add("hidden");
+}
 
-/* ---------- DOM ---------- */
+/* =======================
+   DOM
+======================= */
 const screenStart = document.getElementById("screen-start");
 const screenQuiz = document.getElementById("screen-quiz");
 const screenResults = document.getElementById("screen-results");
 
+const studentNameEl = document.getElementById("studentName");
 const numQuestionsEl = document.getElementById("numQuestions");
 const modeEl = document.getElementById("mode");
 const btnStart = document.getElementById("btnStart");
@@ -73,31 +100,32 @@ const btnNext = document.getElementById("btnNext");
 const btnFinish = document.getElementById("btnFinish");
 
 const resultsSummaryEl = document.getElementById("resultsSummary");
+const personalSummaryEl = document.getElementById("personalSummary");
 const correctionsEl = document.getElementById("corrections");
+const attemptHistoryEl = document.getElementById("attemptHistory");
 const btnRestart = document.getElementById("btnRestart");
 
-const studentNameEl = document.getElementById("studentName");
-const personalRecordEl = document.getElementById("personalRecord");
+/* =======================
+   State
+======================= */
+let quiz = [];
+let idx = 0;
+let userAnswers = new Map();
 
-/* ---------- State ---------- */
-let quiz = []; // selected questions
-let idx = 0; // current question index
-let userAnswers = new Map(); // questionId -> { type, value }
-
-/* ---------- Quiz building ---------- */
+/* =======================
+   Quiz building
+======================= */
 function buildQuiz(mode, count) {
   const filtered = QUESTION_BANK.filter((q) => q.type === mode);
   const picked = shuffle(filtered).slice(0, clamp(count, 1, filtered.length));
-  return picked;
+
+  // Barajar opciones en preguntas tipo test
+  return picked.map(shuffleQuestionChoices);
 }
 
-function show(el) {
-  el.classList.remove("hidden");
-}
-function hide(el) {
-  el.classList.add("hidden");
-}
-
+/* =======================
+   Navigation
+======================= */
 function goToStart() {
   show(screenStart);
   hide(screenQuiz);
@@ -106,14 +134,15 @@ function goToStart() {
   idx = 0;
   userAnswers = new Map();
 }
-
 function goToQuiz() {
   hide(screenStart);
   show(screenQuiz);
   hide(screenResults);
 }
 
-/* ---------- Rendering ---------- */
+/* =======================
+   Render question
+======================= */
 function renderQuestion() {
   const q = quiz[idx];
   progressEl.textContent = `Pregunta ${idx + 1} de ${quiz.length}`;
@@ -121,7 +150,6 @@ function renderQuestion() {
   questionTextEl.textContent = q.question;
 
   answersForm.innerHTML = "";
-
   const saved = userAnswers.get(q.id);
 
   if (q.type === "mc") {
@@ -149,7 +177,7 @@ function renderQuestion() {
       wrapper.appendChild(text);
       answersForm.appendChild(wrapper);
     });
-  } else if (q.type === "tf") {
+  } else {
     const opts = [
       { label: "Verdadero", value: true },
       { label: "Falso", value: false },
@@ -180,7 +208,6 @@ function renderQuestion() {
     });
   }
 
-  // buttons
   btnPrev.disabled = idx === 0;
   const last = idx === quiz.length - 1;
   if (last) {
@@ -192,8 +219,12 @@ function renderQuestion() {
   }
 }
 
+/* =======================
+   Results
+======================= */
 function computeResults() {
   let correct = 0;
+
   const details = quiz.map((q) => {
     const ans = userAnswers.get(q.id);
 
@@ -232,60 +263,74 @@ function computeResults() {
   return { total, correct, wrong, details };
 }
 
+function renderAttemptHistory(student) {
+  const profiles = loadProfiles();
+  const attempts = profiles?.[student]?.attempts || [];
+
+  if (!attemptHistoryEl) return;
+
+  if (attempts.length === 0) {
+    attemptHistoryEl.innerHTML = `<tr><td colspan="5">Aún no hay intentos guardados.</td></tr>`;
+    return;
+  }
+
+  attemptHistoryEl.innerHTML = attempts
+    .slice(0, 10)
+    .map(
+      (a) => `
+    <tr>
+      <td>${escapeHtml(fmtDate(a.at))}</td>
+      <td>${a.mode === "mc" ? "Tipo test" : "V/F"}</td>
+      <td>${a.correct}/${a.total}</td>
+      <td>${a.errors}</td>
+      <td class="percent">${a.percent}%</td>
+    </tr>
+  `,
+    )
+    .join("");
+}
+
 function renderResults() {
   const { total, correct, wrong, details } = computeResults();
-  // ===== GUARDAR RESULTADO PERSONAL =====
-  const studentName =
+  const pct = percent(correct, total);
+
+  const student =
     normName(studentNameEl.value) ||
-    normName(localStorage.getItem("normas_last_student"));
+    normName(localStorage.getItem(LAST_STUDENT_KEY));
+  const mode = modeEl.value; // "mc" | "tf"
 
-  const mode = modeEl.value; // "mc" o "tf"
-
-  if (studentName) {
+  // Guardar intento (SIEMPRE con %)
+  if (student) {
     const profiles = loadProfiles();
-    const profile = ensureProfile(profiles, studentName);
+    const profile = ensureProfile(profiles, student);
 
-    profile.lastMode = mode;
-
-    const s = profile.stats[mode];
-    s.attempts += 1;
-
-    if (s.bestCorrect === null || correct > s.bestCorrect) {
-      s.bestCorrect = correct;
-    }
-    if (s.bestErrors === null || wrong < s.bestErrors) {
-      s.bestErrors = wrong;
-    }
-
-    pushHistory(s.history, {
+    profile.attempts.unshift({
       at: new Date().toISOString(),
-      correct,
+      mode,
       total,
-      wrong,
+      correct,
+      errors: wrong,
+      percent: pct,
     });
 
+    // guardar últimos 30 por alumno
+    profile.attempts = profile.attempts.slice(0, 30);
+
     saveProfiles(profiles);
-    // --- Mostrar registro personal ---
-    const studentName2 =
-      normName(studentNameEl.value) ||
-      normName(localStorage.getItem("normas_last_student"));
-    if (studentName2) {
-      const profiles = loadProfiles();
-      const p = profiles[studentName2];
-      const s = p?.stats?.[mode];
-      if (s) {
-        personalRecordEl.textContent = `Alumno: ${studentName2} · Intentos (${mode.toUpperCase()}): ${s.attempts} · Mejor: ${s.bestCorrect}/${total} · Menos errores: ${s.bestErrors}`;
-      } else {
-        personalRecordEl.textContent = `Alumno: ${studentName2}`;
-      }
-    } else {
-      personalRecordEl.textContent = "";
-    }
   }
-  // ===== FIN GUARDADO =====
 
-  resultsSummaryEl.textContent = `Total: ${total} · Aciertos: ${correct} · Errores: ${wrong}`;
+  resultsSummaryEl.textContent = `Total: ${total} · Aciertos: ${correct} · Errores: ${wrong} · %: ${pct}%`;
 
+  personalSummaryEl.textContent = student
+    ? `Alumno: ${student} · Modo: ${mode === "mc" ? "Tipo test" : "V/F"}`
+    : `Alumno: (sin nombre)`;
+
+  // Tabla historial
+  if (student) renderAttemptHistory(student);
+  else
+    attemptHistoryEl.innerHTML = `<tr><td colspan="5">Escribe un nombre para guardar historial.</td></tr>`;
+
+  // Corrección
   correctionsEl.innerHTML = "";
   details.forEach((d, i) => {
     const card = document.createElement("div");
@@ -319,26 +364,19 @@ function renderResults() {
   show(screenResults);
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-/* ---------- Events ---------- */
+/* =======================
+   Events
+======================= */
 btnStart.addEventListener("click", () => {
-  const studentName = normName(studentNameEl.value);
-  if (!studentName) {
-    alert("Escribe tu nombre o apodo para guardar tu progreso.");
+  const student = normName(studentNameEl.value);
+  if (!student) {
+    alert("Escribe un nombre o apodo (sirve para guardar tu historial).");
     studentNameEl.focus();
     return;
   }
-  localStorage.setItem("normas_last_student", studentName);
+  localStorage.setItem(LAST_STUDENT_KEY, student);
 
-  const mode = modeEl.value; // "mc" | "tf"
+  const mode = modeEl.value;
   const count = Number(numQuestionsEl.value);
 
   quiz = buildQuiz(mode, count);
@@ -367,6 +405,7 @@ btnRestart.addEventListener("click", () => {
   goToStart();
 });
 
+const last = localStorage.getItem(LAST_STUDENT_KEY);
+if (last) studentNameEl.value = last;
+
 goToStart();
-const last = localStorage.getItem("normas_last_student");
-if (last && studentNameEl) studentNameEl.value = last;

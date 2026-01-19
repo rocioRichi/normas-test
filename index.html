@@ -11,13 +11,14 @@
   <div id="app" class="container">
     <header class="header">
       <h1>Test: Normas UNE-EN (Carpintería y Mueble)</h1>
-      <p class="muted">Preguntas aleatorias · Corrección al final</p>
+      <p class="muted">Preguntas aleatorias · Corrección al final · Registro personal</p>
     </header>
 
+    <!-- START -->
     <section id="screen-start" class="card">
       <div class="row">
         <label for="studentName">Alumno:</label>
-        <input id="studentName" type="text" placeholder="Ej: Ane, Iker..." maxlength="20" />
+        <input id="studentName" type="text" placeholder="Ej: Ane, Iker..." maxlength="24" />
       </div>
 
       <div class="row">
@@ -41,10 +42,10 @@
       <button id="btnStart" class="btn">Empezar</button>
     </section>
 
+    <!-- QUIZ -->
     <section id="screen-quiz" class="card hidden">
       <div class="quiz-top">
         <div id="progress" class="muted"></div>
-        <div id="scoreLive" class="badge hidden"></div>
       </div>
 
       <h2 id="questionTitle"></h2>
@@ -59,11 +60,27 @@
       </div>
     </section>
 
+    <!-- RESULTS -->
     <section id="screen-results" class="card hidden">
       <h2>Resultados</h2>
       <p id="resultsSummary" class="summary"></p>
-      <p id="personalRecord" class="muted"></p>
+      <p id="personalSummary" class="muted"></p>
 
+      <h3>Últimos intentos</h3>
+      <div class="card">
+        <table class="history">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Modo</th>
+              <th>Aciertos</th>
+              <th>Errores</th>
+              <th>%</th>
+            </tr>
+          </thead>
+          <tbody id="attemptHistory"></tbody>
+        </table>
+      </div>
 
       <div class="actions">
         <button id="btnRestart" class="btn">Hacer otro test</button>
@@ -74,7 +91,7 @@
     </section>
 
     <footer class="footer muted">
-      Hecho con Vite + JS · Guardado local: mejor puntuación (opcional)
+      Vite + JS · Registro guardado en este navegador (localStorage)
     </footer>
   </div>
 
