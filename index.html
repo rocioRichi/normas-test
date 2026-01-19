@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Normas UNE/EN</title>
+</head>
+
+<body>
+  <div id="app" class="container">
+    <header class="header">
+      <h1>Test: Normas UNE-EN (Carpintería y Mueble)</h1>
+      <p class="muted">Preguntas aleatorias · Corrección al final</p>
+    </header>
+
+    <section id="screen-start" class="card">
+      <div class="row">
+        <label for="numQuestions">Número de preguntas:</label>
+        <select id="numQuestions">
+          <option value="5">5</option>
+          <option value="8">8</option>
+          <option value="10" selected>10</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="mode">Modo:</label>
+        <select id="mode">
+          <option value="mc" selected>Tipo test (4 opciones)</option>
+          <option value="tf">Verdadero/Falso</option>
+        </select>
+      </div>
+
+      <button id="btnStart" class="btn">Empezar</button>
+    </section>
+
+    <section id="screen-quiz" class="card hidden">
+      <div class="quiz-top">
+        <div id="progress" class="muted"></div>
+        <div id="scoreLive" class="badge hidden"></div>
+      </div>
+
+      <h2 id="questionTitle"></h2>
+      <p id="questionText" class="question"></p>
+
+      <form id="answers" class="answers"></form>
+
+      <div class="actions">
+        <button id="btnPrev" class="btn btn-ghost" type="button">Atrás</button>
+        <button id="btnNext" class="btn" type="button">Siguiente</button>
+        <button id="btnFinish" class="btn btn-danger hidden" type="button">Finalizar</button>
+      </div>
+    </section>
+
+    <section id="screen-results" class="card hidden">
+      <h2>Resultados</h2>
+      <p id="resultsSummary" class="summary"></p>
+
+      <div class="actions">
+        <button id="btnRestart" class="btn">Hacer otro test</button>
+      </div>
+
+      <h3>Corrección</h3>
+      <div id="corrections" class="corrections"></div>
+    </section>
+
+    <footer class="footer muted">
+      Hecho con Vite + JS · Guardado local: mejor puntuación (opcional)
+    </footer>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
